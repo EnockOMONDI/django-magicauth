@@ -1,14 +1,14 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.template import loader
-from django.utils.module_loading import import_string
-from magicauth import settings as magicauth_settings
-from magicauth.models import MagicToken
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from django.template import loader
+from django.utils.module_loading import import_string
 from django_otp import match_token
 
+from magicauth import settings as magicauth_settings
+from magicauth.models import MagicToken
 
 
 email_unknown_callback = import_string(magicauth_settings.EMAIL_UNKNOWN_CALLBACK)
@@ -60,7 +60,6 @@ class EmailForm(forms.Form):
         )
 
 
-
 class OTPForm(forms.Form):
     otp_token = forms.CharField(
         max_length=6,
@@ -77,6 +76,7 @@ class OTPForm(forms.Form):
     def clean_otp_token(self):
         otp_token = self.cleaned_data["otp_token"]
         user = self.user
+
         from django_otp import user_has_device, devices_for_user
         if not user_has_device(user):
             raise ValidationError("Vous n'avez pas d'appareil enregistré")
@@ -86,4 +86,5 @@ class OTPForm(forms.Form):
                 raise ValidationError("Vous devez patienter avant de recommencer")
             if device.verify_token(otp_token):
                 return otp_token
+    
         raise ValidationError("Ce code n'est pas valide.")
